@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poisson Edge</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#0a0e1a;
+  --surface:#111827;
+  --border:#1e2d40;
+  --green:#00e676;
+  --yellow:#ffd600;
+  --red:#ff1744;
+  --blue:#40c4ff;
+  --muted:#4a5568;
+  --text:#e2e8f0;
+}
+
+body{
+  font-family:'DM Mono',monospace;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100dvh;
+  display:flex;
+  justify-content:center;
+  padding:16px 12px 40px;
+}
+
+.app{
+  width:100%;
+  max-width:400px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+h1{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:28px;
+  letter-spacing:3px;
+  text-align:center;
+  color:var(--green);
+  text-shadow:0 0 20px rgba(0,230,118,.3);
+}
+
+.subtitle{
+  text-align:center;
+  font-size:10px;
+  color:var(--muted);
+  letter-spacing:2px;
+  margin-top:-8px;
+}
+
+/* team cards */
+.team-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:12px;
+}
+
+.team-label{
+  font-size:10px;
+  letter-spacing:2px;
+  color:var(--muted);
+  margin-bottom:8px;
+}
+
+.team-name-input{
+  width:100%;
+  background:transparent;
+  border:none;
+  border-bottom:1px solid var(--border);
+  color:var(--text);
+  font-family:'DM Mono',monospace;
+  font-size:13px;
+  padding:4px 0 6px;
+  margin-bottom:10px;
+  outline:none;
+}
+
+.team-name-input::placeholder{color:var(--muted);}
+.team-name-input:focus{border-bottom-color:var(--green);}
+
+.inputs{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:6px;
+}
+
+.field{display:flex;flex-direction:column;gap:3px;}
+
+.field label{
+  font-size:9px;
+  letter-spacing:1px;
+  color:var(--muted);
+  text-align:center;
+}
+
+input[type=number]{
+  width:100%;
+  padding:9px 4px;
+  border-radius:6px;
+  border:1px solid var(--border);
+  background:#0d1421;
+  color:var(--text);
+  font-family:'DM Mono',monospace;
+  font-size:14px;
+  text-align:center;
+  outline:none;
+  transition:border-color .2s;
+  -moz-appearance:textfield;
+}
+
+input[type=number]::-webkit-inner-spin-button{display:none;}
+input[type=number]:focus{border-color:var(--green);}
+
+/* buttons */
+.buttons{display:flex;gap:8px;}
+
+button{
+  flex:1;
+  padding:13px;
+  border:none;
+  border-radius:10px;
+  font-family:'DM Mono',monospace;
+  font-size:13px;
+  font-weight:500;
+  cursor:pointer;
+  transition:opacity .15s, transform .1s;
+}
+
+button:active{transform:scale(.97);}
+
+.calc{
+  background:var(--green);
+  color:#000;
+  letter-spacing:1px;
+}
+
+.reset{
+  background:var(--surface);
+  color:var(--muted);
+  border:1px solid var(--border);
+}
+
+/* RESULT */
+.result{
+  display:none;
+  flex-direction:column;
+  gap:10px;
+  animation:fadeIn .3s ease;
+}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+.lambdas{
+  text-align:center;
+  font-size:11px;
+  color:var(--muted);
+  letter-spacing:1px;
+}
+
+/* prob boxes */
+.prob-grid{
+  display:flex;
+  gap:6px;
+}
+
+.prob-box{
+  flex:1;
+  padding:12px 6px;
+  border-radius:10px;
+  text-align:center;
+  border:1px solid transparent;
+}
+
+.prob-box .label{font-size:9px;letter-spacing:1px;margin-bottom:4px;opacity:.7;}
+.prob-box .pct{font-family:'Bebas Neue',sans-serif;font-size:26px;line-height:1;}
+.prob-box .odds{font-size:10px;margin-top:3px;opacity:.6;}
+
+.win-box{background:rgba(0,230,118,.08);border-color:rgba(0,230,118,.2);color:var(--green);}
+.draw-box{background:rgba(255,214,0,.06);border-color:rgba(255,214,0,.15);color:var(--yellow);}
+.lose-box{background:rgba(255,23,68,.06);border-color:rgba(255,23,68,.15);color:var(--red);}
+
+/* best score */
+.section-title{
+  font-size:9px;
+  letter-spacing:2px;
+  color:var(--muted);
+  margin-bottom:6px;
+}
+
+.score-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 12px;
+}
+
+.best-score{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:32px;
+  text-align:center;
+  color:var(--blue);
+  letter-spacing:4px;
+}
+
+.score-prob{
+  text-align:center;
+  font-size:10px;
+  color:var(--muted);
+  margin-top:2px;
+}
+
+/* edge section */
+.edge-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 12px;
+}
+
+.edge-inputs{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:6px;
+  margin-top:6px;
+}
+
+.edge-row{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+
+.edge-row label{
+  font-size:9px;
+  letter-spacing:1px;
+  color:var(--muted);
+  text-align:center;
+}
+
+.edge-results{
+  margin-top:10px;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+
+.edge-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:8px 10px;
+  border-radius:7px;
+  font-size:12px;
+}
+
+.edge-label{color:var(--muted);}
+
+.edge-value{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:18px;
+  letter-spacing:1px;
+}
+
+.edge-positive{background:rgba(0,230,118,.08);color:var(--green);}
+.edge-negative{background:rgba(255,23,68,.06);color:var(--red);}
+.edge-neutral{background:rgba(255,214,0,.06);color:var(--yellow);}
+
+.edge-badge{
+  font-size:9px;
+  padding:2px 6px;
+  border-radius:4px;
+  letter-spacing:1px;
+}
+
+.badge-pos{background:rgba(0,230,118,.15);color:var(--green);}
+.badge-neg{background:rgba(255,23,68,.12);color:var(--red);}
+.badge-neu{background:rgba(255,214,0,.1);color:var(--yellow);}
+
+.hint{
+  font-size:9px;
+  color:var(--muted);
+  text-align:center;
+  letter-spacing:1px;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <h1>⚽ POISSON EDGE</h1>
+  <p class="subtitle">CALCULADORA DE VALOR EN APUESTAS</p>
+
+  <!-- LOCAL -->
+  <div class="team-card">
+    <div class="team-label">🏠 LOCAL</div>
+    <input class="team-name-input" id="name_home" placeholder="Nombre del equipo...">
+    <div class="inputs">
+      <div class="field"><label>GOL A FAVOR</label><input type="number" id="gf_home" placeholder="0"></div>
+      <div class="field"><label>GOL EN CONTRA</label><input type="number" id="ga_home" placeholder="0"></div>
+      <div class="field"><label>PARTIDOS</label><input type="number" id="p_home" placeholder="0"></div>
+    </div>
+  </div>
+
+  <!-- VISITANTE -->
+  <div class="team-card">
+    <div class="team-label">✈️ VISITANTE</div>
+    <input class="team-name-input" id="name_away" placeholder="Nombre del equipo...">
+    <div class="inputs">
+      <div class="field"><label>GOL A FAVOR</label><input type="number" id="gf_away" placeholder="0"></div>
+      <div class="field"><label>GOL EN CONTRA</label><input type="number" id="ga_away" placeholder="0"></div>
+      <div class="field"><label>PARTIDOS</label><input type="number" id="p_away" placeholder="0"></div>
+    </div>
+  </div>
+
+  <div class="buttons">
+    <button class="calc" id="btn_calc">CALCULAR</button>
+    <button class="reset" id="btn_reset">LIMPIAR</button>
+  </div>
+
+  <!-- RESULTADOS -->
+  <div class="result" id="res">
+
+    <div class="lambdas" id="lam"></div>
+
+    <!-- probabilidades -->
+    <div class="prob-grid">
+      <div class="prob-box win-box">
+        <div class="label" id="label_win">LOCAL</div>
+        <div class="pct" id="w"></div>
+        <div class="odds" id="fair_w"></div>
+      </div>
+      <div class="prob-box draw-box">
+        <div class="label">EMPATE</div>
+        <div class="pct" id="d"></div>
+        <div class="odds" id="fair_d"></div>
+      </div>
+      <div class="prob-box lose-box">
+        <div class="label" id="label_lose">VISIT.</div>
+        <div class="pct" id="l"></div>
+        <div class="odds" id="fair_l"></div>
+      </div>
+    </div>
+
+    <!-- marcador más probable -->
+    <div class="score-card">
+      <div class="section-title">MARCADOR MÁS PROBABLE</div>
+      <div class="best-score" id="best_score">-</div>
+      <div class="score-prob" id="best_score_prob"></div>
+    </div>
+
+    <!-- edge vs bookie -->
+    <div class="edge-card">
+      <div class="section-title">COMPARAR CON BOOKIE (opcional)</div>
+      <p class="hint">Ingresa las cuotas reales para ver si hay edge</p>
+      <div class="edge-inputs">
+        <div class="edge-row"><label>CUOTA LOCAL</label><input type="number" id="bookie_w" placeholder="1.50" step="0.01"></div>
+        <div class="edge-row"><label>CUOTA EMPATE</label><input type="number" id="bookie_d" placeholder="3.50" step="0.01"></div>
+        <div class="edge-row"><label>CUOTA VISIT.</label><input type="number" id="bookie_l" placeholder="5.00" step="0.01"></div>
+      </div>
+      <button class="calc" id="btn_edge" style="margin-top:10px;width:100%;padding:10px;">VER EDGE</button>
+      <div class="edge-results" id="edge_results"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+let probW=0, probD=0, probL=0;
+
+function fact(n){return n<=1?1:n*fact(n-1);}
+function poisson(l,k){return(Math.pow(l,k)*Math.exp(-l))/fact(k);}
+
+function calc(){
+  const gfH=+document.getElementById('gf_home').value;
+  const gaH=+document.getElementById('ga_home').value;
+  const pH=+document.getElementById('p_home').value;
+  const gfA=+document.getElementById('gf_away').value;
+  const gaA=+document.getElementById('ga_away').value;
+  const pA=+document.getElementById('p_away').value;
+  const nameH=document.getElementById('name_home').value||'LOCAL';
+  const nameA=document.getElementById('name_away').value||'VISIT.';
+
+  if(!gfH||!gaH||!pH||!gfA||!gaA||!pA){alert("Completa todos los campos numéricos");return;}
+
+  const atkH=gfH/pH, defH=gaH/pH;
+  const atkA=gfA/pA, defA=gaA/pA;
+  const homeL=(atkH+defA)/2;
+  const awayL=(atkA+defH)/2;
+
+  let win=0,draw=0,lose=0;
+  let bestP=0,bestI=0,bestJ=0;
+
+  for(let i=0;i<=7;i++){
+    for(let j=0;j<=7;j++){
+      const p=poisson(homeL,i)*poisson(awayL,j);
+      if(i>j) win+=p;
+      else if(i===j) draw+=p;
+      else lose+=p;
+      if(p>bestP){bestP=p;bestI=i;bestJ=j;}
+    }
+  }
+
+  probW=win; probD=draw; probL=lose;
+
+  document.getElementById('label_win').textContent=nameH.substring(0,6).toUpperCase();
+  document.getElementById('label_lose').textContent=nameA.substring(0,6).toUpperCase();
+  document.getElementById('lam').textContent='λ local '+homeL.toFixed(2)+'  ·  λ visit '+awayL.toFixed(2);
+  document.getElementById('w').textContent=(win*100).toFixed(1)+'%';
+  document.getElementById('d').textContent=(draw*100).toFixed(1)+'%';
+  document.getElementById('l').textContent=(lose*100).toFixed(1)+'%';
+  document.getElementById('fair_w').textContent='cuota justa '+(1/win).toFixed(2);
+  document.getElementById('fair_d').textContent='cuota justa '+(1/draw).toFixed(2);
+  document.getElementById('fair_l').textContent='cuota justa '+(1/lose).toFixed(2);
+  document.getElementById('best_score').textContent=bestI+' — '+bestJ;
+  document.getElementById('best_score_prob').textContent=(bestP*100).toFixed(1)+'% de probabilidad';
+  document.getElementById('res').style.display='flex';
+  document.getElementById('edge_results').innerHTML='';
+}
+
+function calcEdge(){
+  if(!probW){alert("Primero calcula el partido");return;}
+  const bW=+document.getElementById('bookie_w').value;
+  const bD=+document.getElementById('bookie_d').value;
+  const bL=+document.getElementById('bookie_l').value;
+  if(!bW&&!bD&&!bL){alert("Ingresa al menos una cuota");return;}
+
+  const items=[
+    {label:'LOCAL',prob:probW,bookie:bW},
+    {label:'EMPATE',prob:probD,bookie:bD},
+    {label:'VISIT.',prob:probL,bookie:bL},
+  ];
+
+  let html='';
+  items.forEach(function(item){
+    if(!item.bookie) return;
+    const bookieProb=1/item.bookie;
+    const edge=((item.prob-bookieProb)/bookieProb)*100;
+    const ev=((item.prob*item.bookie)-1)*100;
+    let cls,badge,badgeText;
+    if(edge>3){cls='edge-positive';badge='badge-pos';badgeText='✅ EDGE';}
+    else if(edge<-3){cls='edge-negative';badge='badge-neg';badgeText='❌ SIN VALOR';}
+    else{cls='edge-neutral';badge='badge-neu';badgeText='⚠️ NEUTRO';}
+    html+='<div class="edge-item '+cls+'"><span class="edge-label">'+item.label+'</span><span class="edge-value">EV '+(ev>0?'+':'')+ev.toFixed(1)+'%</span><span class="edge-badge '+badge+'">'+badgeText+'</span></div>';
+  });
+  document.getElementById('edge_results').innerHTML=html;
+}
+
+function resetForm(){
+  document.querySelectorAll('input').forEach(function(i){i.value='';});
+  document.getElementById('res').style.display='none';
+  document.getElementById('edge_results').innerHTML='';
+  probW=probD=probL=0;
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  document.getElementById('btn_calc').addEventListener('click', calc);
+  document.getElementById('btn_reset').addEventListener('click', resetForm);
+  document.getElementById('btn_edge').addEventListener('click', calcEdge);
+});
+</script>
+</body>
+</html>
