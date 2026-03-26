@@ -56,6 +56,62 @@ h1{
   margin-top:-8px;
 }
 
+/* league avg config */
+.config-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:10px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.config-label{
+  font-size:9px;
+  letter-spacing:2px;
+  color:var(--muted);
+  flex:1;
+}
+
+.config-hint{
+  font-size:8px;
+  color:var(--muted);
+  opacity:.6;
+  flex:2;
+}
+
+.config-input-wrap{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:2px;
+}
+
+.config-input-wrap label{
+  font-size:8px;
+  letter-spacing:1px;
+  color:var(--muted);
+}
+
+input#liga_avg{
+  width:64px;
+  padding:7px 4px;
+  border-radius:6px;
+  border:1px solid var(--border);
+  background:#0d1421;
+  color:var(--yellow);
+  font-family:'DM Mono',monospace;
+  font-size:13px;
+  text-align:center;
+  outline:none;
+  transition:border-color .2s;
+  -moz-appearance:textfield;
+}
+input#liga_avg::-webkit-inner-spin-button{display:none;}
+input#liga_avg:focus{border-color:var(--yellow);}
+
 /* team cards */
 .team-card{
   background:var(--surface);
@@ -285,6 +341,27 @@ button:active{transform:scale(.97);}
 .badge-neg{background:rgba(255,23,68,.12);color:var(--red);}
 .badge-neu{background:rgba(255,214,0,.1);color:var(--yellow);}
 
+/* conclusion */
+.conclusion-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:12px;
+  display:none;
+}
+
+.conclusion-text{
+  font-size:12px;
+  line-height:1.6;
+  color:var(--text);
+  text-align:center;
+}
+
+.conclusion-text strong{
+  color:var(--green);
+  font-size:13px;
+}
+
 .hint{
   font-size:9px;
   color:var(--muted);
@@ -299,6 +376,18 @@ button:active{transform:scale(.97);}
 
   <h1>⚽ POISSON EDGE</h1>
   <p class="subtitle">CALCULADORA DE VALOR EN APUESTAS</p>
+
+  <!-- LIGA PROMEDIO -->
+  <div class="config-card">
+    <div>
+      <div class="config-label">PROMEDIO LIGA</div>
+      <div class="config-hint">goles/partido de tu liga<br>Liga 1 Perú ≈ 2.5</div>
+    </div>
+    <div class="config-input-wrap">
+      <label>GOL/PJ</label>
+      <input type="number" id="liga_avg" value="2.50" step="0.01" min="1" max="5">
+    </div>
+  </div>
 
   <!-- LOCAL -->
   <div class="team-card">
@@ -358,6 +447,12 @@ button:active{transform:scale(.97);}
       <div class="score-prob" id="best_score_prob"></div>
     </div>
 
+    <!-- conclusión automática -->
+    <div class="conclusion-card" id="conclusion_card">
+      <div class="section-title">CONCLUSIÓN DEL MODELO</div>
+      <div class="conclusion-text" id="conclusion_text"></div>
+    </div>
+
     <!-- edge vs bookie -->
     <div class="edge-card">
       <div class="section-title">COMPARAR CON BOOKIE (opcional)</div>
@@ -377,6 +472,7 @@ button:active{transform:scale(.97);}
 
 <script>
 let probW=0, probD=0, probL=0;
+let nameHome='LOCAL', nameAway='VISIT.';
 
 function fact(n){return n<=1?1:n*fact(n-1);}
 function poisson(l,k){return(Math.pow(l,k)*Math.exp(-l))/fact(k);}
@@ -388,15 +484,23 @@ function calc(){
   const gfA=+document.getElementById('gf_away').value;
   const gaA=+document.getElementById('ga_away').value;
   const pA=+document.getElementById('p_away').value;
-  const nameH=document.getElementById('name_home').value||'LOCAL';
-  const nameA=document.getElementById('name_away').value||'VISIT.';
+  const ligaAvg=+document.getElementById('liga_avg').value||2.5;
+  nameHome=document.getElementById('name_home').value||'LOCAL';
+  nameAway=document.getElementById('name_away').value||'VISIT.';
 
   if(!gfH||!gaH||!pH||!gfA||!gaA||!pA){alert("Completa todos los campos numéricos");return;}
 
-  const atkH=gfH/pH, defH=gaH/pH;
-  const atkA=gfA/pA, defA=gaA/pA;
-  const homeL=(atkH+defA)/2;
-  const awayL=(atkA+defH)/2;
+  // --- FÓRMULA DIXON-COLES STYLE: índices relativos al promedio de liga ---
+  const ligaHalf=ligaAvg/2; // goles esperados por equipo (mitad del promedio)
+
+  const atkH=gfH/pH/ligaHalf;   // índice ataque local    (>1 = mejor que promedio)
+  const defH=gaH/pH/ligaHalf;   // índice defensa local   (>1 = peor que promedio)
+  const atkA=gfA/pA/ligaHalf;   // índice ataque visitante
+  const defA=gaA/pA/ligaHalf;   // índice defensa visitante (>1 = peor que promedio)
+
+  // lambda = índice ataque × índice defensa rival × goles esperados por equipo
+  const homeL=atkH*defA*ligaHalf;
+  const awayL=atkA*defH*ligaHalf;
 
   let win=0,draw=0,lose=0;
   let bestP=0,bestI=0,bestJ=0;
@@ -413,8 +517,8 @@ function calc(){
 
   probW=win; probD=draw; probL=lose;
 
-  document.getElementById('label_win').textContent=nameH.substring(0,6).toUpperCase();
-  document.getElementById('label_lose').textContent=nameA.substring(0,6).toUpperCase();
+  document.getElementById('label_win').textContent=nameHome.substring(0,6).toUpperCase();
+  document.getElementById('label_lose').textContent=nameAway.substring(0,6).toUpperCase();
   document.getElementById('lam').textContent='λ local '+homeL.toFixed(2)+'  ·  λ visit '+awayL.toFixed(2);
   document.getElementById('w').textContent=(win*100).toFixed(1)+'%';
   document.getElementById('d').textContent=(draw*100).toFixed(1)+'%';
@@ -426,6 +530,63 @@ function calc(){
   document.getElementById('best_score_prob').textContent=(bestP*100).toFixed(1)+'% de probabilidad';
   document.getElementById('res').style.display='flex';
   document.getElementById('edge_results').innerHTML='';
+
+  // --- CONCLUSIÓN AUTOMÁTICA ---
+  showConclusion(win, draw, lose, bestI, bestJ, bestP);
+}
+
+function showConclusion(win, draw, lose, bestI, bestJ, bestP){
+  const card = document.getElementById('conclusion_card');
+  const txt  = document.getElementById('conclusion_text');
+
+  // dominante = resultado con mayor probabilidad
+  const max = Math.max(win, draw, lose);
+  let dominant, dominantName;
+  if(max === win){
+    dominant = win;
+    dominantName = nameHome.toUpperCase() + ' GANA';
+  } else if(max === draw){
+    dominant = draw;
+    dominantName = 'EMPATE';
+  } else {
+    dominant = lose;
+    dominantName = nameAway.toUpperCase() + ' GANA';
+  }
+
+  // nivel de confianza
+  let confianza, color;
+  if(dominant >= 0.55){ confianza='ALTA'; color='var(--green)'; }
+  else if(dominant >= 0.40){ confianza='MEDIA'; color='var(--yellow)'; }
+  else { confianza='BAJA'; color='var(--red)'; }
+
+  // diferencia entre lambdas para detectar partido parejo
+  const lH = (+document.getElementById('gf_home').value / +document.getElementById('p_home').value *
+              (+document.getElementById('ga_away').value / +document.getElementById('p_away').value)) /
+              (+document.getElementById('liga_avg').value||2.5);
+  const lA = (+document.getElementById('gf_away').value / +document.getElementById('p_away').value *
+              (+document.getElementById('ga_home').value / +document.getElementById('p_home').value)) /
+              (+document.getElementById('liga_avg').value||2.5);
+
+  const ratio = Math.max(lH,lA) / Math.min(lH,lA);
+  let contexto = '';
+  if(ratio >= 2.0){
+    contexto = 'Partido muy desequilibrado — las lambdas difieren significativamente.';
+  } else if(ratio >= 1.4){
+    contexto = 'Partido con diferencia clara entre equipos.';
+  } else {
+    contexto = 'Partido parejo — cualquier resultado es posible.';
+  }
+
+  txt.innerHTML =
+    'El modelo favorece <strong style="color:'+color+'">'+dominantName+'</strong> '+
+    'con <strong style="color:'+color+'">'+(dominant*100).toFixed(1)+'%</strong> '+
+    'de probabilidad.<br><br>'+
+    'Confianza del modelo: <strong style="color:'+color+'">'+confianza+'</strong><br><br>'+
+    'Marcador más probable: <strong style="color:var(--blue)">'+bestI+' — '+bestJ+'</strong> '+
+    '('+(bestP*100).toFixed(1)+'%)<br><br>'+
+    '<span style="font-size:10px;color:var(--muted)">'+contexto+'</span>';
+
+  card.style.display='block';
 }
 
 function calcEdge(){
@@ -436,9 +597,9 @@ function calcEdge(){
   if(!bW&&!bD&&!bL){alert("Ingresa al menos una cuota");return;}
 
   const items=[
-    {label:'LOCAL',prob:probW,bookie:bW},
+    {label:nameHome.substring(0,6).toUpperCase(),prob:probW,bookie:bW},
     {label:'EMPATE',prob:probD,bookie:bD},
-    {label:'VISIT.',prob:probL,bookie:bL},
+    {label:nameAway.substring(0,6).toUpperCase(),prob:probL,bookie:bL},
   ];
 
   let html='';
@@ -457,10 +618,15 @@ function calcEdge(){
 }
 
 function resetForm(){
-  document.querySelectorAll('input').forEach(function(i){i.value='';});
+  document.querySelectorAll('input').forEach(function(i){
+    if(i.id==='liga_avg') i.value='2.50';
+    else i.value='';
+  });
   document.getElementById('res').style.display='none';
   document.getElementById('edge_results').innerHTML='';
+  document.getElementById('conclusion_card').style.display='none';
   probW=probD=probL=0;
+  nameHome='LOCAL'; nameAway='VISIT.';
 }
 
 document.addEventListener('DOMContentLoaded', function(){
