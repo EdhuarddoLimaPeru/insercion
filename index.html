@@ -2,148 +2,170 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Poisson Edge</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Edge Calc</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap');
-
-*{box-sizing:border-box;margin:0;padding:0}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 
 :root{
-  --bg:#0a0e1a;
-  --surface:#111827;
-  --border:#1e2d40;
-  --green:#00e676;
-  --yellow:#ffd600;
-  --red:#ff1744;
-  --blue:#40c4ff;
-  --muted:#4a5568;
-  --text:#e2e8f0;
+  --bg:#080c14;
+  --surface:#0f1623;
+  --surface2:#161f30;
+  --border:#1c2a3f;
+
+  /* Dixon-Coles palette — verde esmeralda */
+  --dc:#00c896;
+  --dc-dim:rgba(0,200,150,.08);
+  --dc-border:rgba(0,200,150,.2);
+
+  /* Elo palette — naranja ambar */
+  --elo:#ff9500;
+  --elo-dim:rgba(255,149,0,.08);
+  --elo-border:rgba(255,149,0,.2);
+
+  --yellow:#ffd60a;
+  --red:#ff3b30;
+  --blue:#0a84ff;
+  --muted:#3d5068;
+  --text:#c8d8e8;
+  --text2:#7a9ab8;
 }
 
 body{
-  font-family:'DM Mono',monospace;
+  font-family:'JetBrains Mono',monospace;
   background:var(--bg);
   color:var(--text);
   min-height:100dvh;
   display:flex;
   justify-content:center;
-  padding:16px 12px 40px;
+  padding:0 0 60px;
 }
 
 .app{
   width:100%;
-  max-width:400px;
+  max-width:420px;
   display:flex;
   flex-direction:column;
-  gap:14px;
 }
 
-h1{
-  font-family:'Bebas Neue',sans-serif;
-  font-size:28px;
-  letter-spacing:3px;
+/* HEADER */
+.header{
+  padding:20px 16px 0;
   text-align:center;
-  color:var(--green);
-  text-shadow:0 0 20px rgba(0,230,118,.3);
 }
 
-.subtitle{
-  text-align:center;
-  font-size:10px;
-  color:var(--muted);
-  letter-spacing:2px;
-  margin-top:-8px;
+.logo{
+  font-family:'Rajdhani',sans-serif;
+  font-size:26px;
+  font-weight:700;
+  letter-spacing:4px;
+  line-height:1;
 }
 
-/* league avg config */
-.config-card{
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:10px 12px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-}
+.logo .dc-color{color:var(--dc);}
+.logo .elo-color{color:var(--elo);}
+.logo .sep{color:var(--muted);margin:0 4px;}
 
-.config-label{
+.tagline{
   font-size:9px;
-  letter-spacing:2px;
+  letter-spacing:3px;
   color:var(--muted);
-  flex:1;
+  margin-top:4px;
 }
 
-.config-hint{
-  font-size:8px;
-  color:var(--muted);
-  opacity:.6;
-  flex:2;
-}
-
-.config-input-wrap{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:2px;
-}
-
-.config-input-wrap label{
-  font-size:8px;
-  letter-spacing:1px;
-  color:var(--muted);
-}
-
-input#liga_avg{
-  width:64px;
-  padding:7px 4px;
-  border-radius:6px;
+/* TABS */
+.tabs{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  margin:16px 16px 0;
+  border-radius:12px;
+  overflow:hidden;
   border:1px solid var(--border);
-  background:#0d1421;
-  color:var(--yellow);
-  font-family:'DM Mono',monospace;
-  font-size:13px;
-  text-align:center;
-  outline:none;
-  transition:border-color .2s;
-  -moz-appearance:textfield;
 }
-input#liga_avg::-webkit-inner-spin-button{display:none;}
-input#liga_avg:focus{border-color:var(--yellow);}
 
-/* team cards */
-.team-card{
+.tab{
+  padding:12px;
+  border:none;
   background:var(--surface);
-  border:1px solid var(--border);
+  font-family:'Rajdhani',sans-serif;
+  font-size:14px;
+  font-weight:700;
+  letter-spacing:2px;
+  cursor:pointer;
+  color:var(--muted);
+  transition:all .2s;
+  position:relative;
+}
+
+.tab::after{
+  content:'';
+  position:absolute;
+  bottom:0;left:0;right:0;
+  height:2px;
+  background:transparent;
+  transition:background .2s;
+}
+
+.tab.dc-active{color:var(--dc);}
+.tab.dc-active::after{background:var(--dc);}
+.tab.elo-active{color:var(--elo);}
+.tab.elo-active::after{background:var(--elo);}
+
+/* PANELS */
+.panel{
+  display:none;
+  flex-direction:column;
+  gap:12px;
+  padding:12px 16px;
+  animation:fadeUp .25s ease;
+}
+
+.panel.active{display:flex;}
+
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* CARDS */
+.card{
   border-radius:12px;
   padding:12px;
+  border:1px solid var(--border);
+  background:var(--surface);
 }
 
-.team-label{
+.card-label{
+  font-family:'Rajdhani',sans-serif;
   font-size:10px;
-  letter-spacing:2px;
-  color:var(--muted);
-  margin-bottom:8px;
+  letter-spacing:3px;
+  margin-bottom:10px;
 }
 
-.team-name-input{
+.dc .card-label{color:var(--dc);}
+.elo-panel .card-label{color:var(--elo);}
+
+/* inputs */
+.team-name{
   width:100%;
   background:transparent;
   border:none;
   border-bottom:1px solid var(--border);
   color:var(--text);
-  font-family:'DM Mono',monospace;
+  font-family:'JetBrains Mono',monospace;
   font-size:13px;
-  padding:4px 0 6px;
+  padding:4px 0 8px;
   margin-bottom:10px;
   outline:none;
+  transition:border-color .2s;
 }
 
-.team-name-input::placeholder{color:var(--muted);}
-.team-name-input:focus{border-bottom-color:var(--green);}
+.dc .team-name:focus{border-bottom-color:var(--dc);}
+.elo-panel .team-name:focus{border-bottom-color:var(--elo);}
 
-.inputs{
+.fields{
   display:grid;
   grid-template-columns:repeat(3,1fr);
   gap:6px;
@@ -152,7 +174,7 @@ input#liga_avg:focus{border-color:var(--yellow);}
 .field{display:flex;flex-direction:column;gap:3px;}
 
 .field label{
-  font-size:9px;
+  font-size:8px;
   letter-spacing:1px;
   color:var(--muted);
   text-align:center;
@@ -161,11 +183,11 @@ input#liga_avg:focus{border-color:var(--yellow);}
 input[type=number]{
   width:100%;
   padding:9px 4px;
-  border-radius:6px;
+  border-radius:8px;
   border:1px solid var(--border);
-  background:#0d1421;
+  background:var(--bg);
   color:var(--text);
-  font-family:'DM Mono',monospace;
+  font-family:'JetBrains Mono',monospace;
   font-size:14px;
   text-align:center;
   outline:none;
@@ -174,437 +196,452 @@ input[type=number]{
 }
 
 input[type=number]::-webkit-inner-spin-button{display:none;}
-input[type=number]:focus{border-color:var(--green);}
 
-/* buttons */
-.buttons{display:flex;gap:8px;}
+.dc input[type=number]:focus{border-color:var(--dc);}
+.elo-panel input[type=number]:focus{border-color:var(--elo);}
 
-button{
-  flex:1;
-  padding:13px;
-  border:none;
-  border-radius:10px;
-  font-family:'DM Mono',monospace;
-  font-size:13px;
-  font-weight:500;
-  cursor:pointer;
-  transition:opacity .15s, transform .1s;
-}
-
-button:active{transform:scale(.97);}
-
-.calc{
-  background:var(--green);
-  color:#000;
-  letter-spacing:1px;
-}
-
-.reset{
-  background:var(--surface);
-  color:var(--muted);
-  border:1px solid var(--border);
-}
-
-/* RESULT */
-.result{
-  display:none;
-  flex-direction:column;
-  gap:10px;
-  animation:fadeIn .3s ease;
-}
-
-@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-
-.lambdas{
-  text-align:center;
-  font-size:11px;
-  color:var(--muted);
-  letter-spacing:1px;
-}
-
-/* prob boxes */
-.prob-grid{
+/* liga avg */
+.liga-row{
   display:flex;
-  gap:6px;
-}
-
-.prob-box{
-  flex:1;
-  padding:12px 6px;
-  border-radius:10px;
-  text-align:center;
-  border:1px solid transparent;
-}
-
-.prob-box .label{font-size:9px;letter-spacing:1px;margin-bottom:4px;opacity:.7;}
-.prob-box .pct{font-family:'Bebas Neue',sans-serif;font-size:26px;line-height:1;}
-.prob-box .odds{font-size:10px;margin-top:3px;opacity:.6;}
-
-.win-box{background:rgba(0,230,118,.08);border-color:rgba(0,230,118,.2);color:var(--green);}
-.draw-box{background:rgba(255,214,0,.06);border-color:rgba(255,214,0,.15);color:var(--yellow);}
-.lose-box{background:rgba(255,23,68,.06);border-color:rgba(255,23,68,.15);color:var(--red);}
-
-/* best score */
-.section-title{
-  font-size:9px;
-  letter-spacing:2px;
-  color:var(--muted);
-  margin-bottom:6px;
-}
-
-.score-card{
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:10px;
-  padding:10px 12px;
-}
-
-.best-score{
-  font-family:'Bebas Neue',sans-serif;
-  font-size:32px;
-  text-align:center;
-  color:var(--blue);
-  letter-spacing:4px;
-}
-
-.score-prob{
-  text-align:center;
-  font-size:10px;
-  color:var(--muted);
-  margin-top:2px;
-}
-
-/* edge section */
-.edge-card{
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:10px;
-  padding:10px 12px;
-}
-
-.edge-inputs{
-  display:grid;
-  grid-template-columns:1fr 1fr 1fr;
-  gap:6px;
-  margin-top:6px;
-}
-
-.edge-row{
-  display:flex;
-  flex-direction:column;
-  gap:3px;
-}
-
-.edge-row label{
-  font-size:9px;
-  letter-spacing:1px;
-  color:var(--muted);
-  text-align:center;
-}
-
-.edge-results{
-  margin-top:10px;
-  display:flex;
-  flex-direction:column;
-  gap:5px;
-}
-
-.edge-item{
-  display:flex;
-  justify-content:space-between;
   align-items:center;
-  padding:8px 10px;
-  border-radius:7px;
-  font-size:12px;
+  justify-content:space-between;
+  gap:10px;
 }
 
-.edge-label{color:var(--muted);}
+.liga-info{flex:1;}
+.liga-info .title{font-size:10px;letter-spacing:2px;color:var(--dc);}
+.liga-info .hint{font-size:9px;color:var(--muted);margin-top:2px;}
 
-.edge-value{
-  font-family:'Bebas Neue',sans-serif;
-  font-size:18px;
-  letter-spacing:1px;
-}
-
-.edge-positive{background:rgba(0,230,118,.08);color:var(--green);}
-.edge-negative{background:rgba(255,23,68,.06);color:var(--red);}
-.edge-neutral{background:rgba(255,214,0,.06);color:var(--yellow);}
-
-.edge-badge{
-  font-size:9px;
-  padding:2px 6px;
-  border-radius:4px;
-  letter-spacing:1px;
-}
-
-.badge-pos{background:rgba(0,230,118,.15);color:var(--green);}
-.badge-neg{background:rgba(255,23,68,.12);color:var(--red);}
-.badge-neu{background:rgba(255,214,0,.1);color:var(--yellow);}
-
-/* conclusion */
-.conclusion-card{
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:10px;
-  padding:12px;
-  display:none;
-}
-
-.conclusion-text{
-  font-size:12px;
-  line-height:1.6;
-  color:var(--text);
-  text-align:center;
-}
-
-.conclusion-text strong{
-  color:var(--green);
-  font-size:13px;
-}
-
-.hint{
-  font-size:9px;
-  color:var(--muted);
-  text-align:center;
-  letter-spacing:1px;
-}
-
-/* TABS */
-.tabs{
-  display:flex;
-  gap:6px;
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:6px;
-}
-
-.tab{
-  flex:1;
-  padding:10px;
-  border:none;
+.liga-input{
+  width:72px;
+  padding:8px 4px;
   border-radius:8px;
-  font-family:'DM Mono',monospace;
-  font-size:11px;
-  font-weight:500;
-  letter-spacing:1px;
-  cursor:pointer;
-  background:transparent;
-  color:var(--muted);
-  transition:all .2s;
-}
-
-.tab.active{
-  background:var(--green);
-  color:#000;
-}
-
-/* ELO */
-.elo-card{
-  background:var(--surface);
   border:1px solid var(--border);
-  border-radius:12px;
-  padding:12px;
-}
-
-.elo-row{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  margin-bottom:10px;
-}
-
-.elo-row:last-child{margin-bottom:0;}
-
-.elo-team-name{
-  flex:2;
-  background:transparent;
-  border:none;
-  border-bottom:1px solid var(--border);
-  color:var(--text);
-  font-family:'DM Mono',monospace;
-  font-size:13px;
-  padding:4px 0;
-  outline:none;
-}
-
-.elo-team-name:focus{border-bottom-color:var(--green);}
-
-.elo-rating{
-  flex:1;
-  padding:9px 4px;
-  border-radius:6px;
-  border:1px solid var(--border);
-  background:#0d1421;
+  background:var(--bg);
   color:var(--yellow);
-  font-family:'DM Mono',monospace;
+  font-family:'JetBrains Mono',monospace;
   font-size:14px;
   text-align:center;
   outline:none;
   -moz-appearance:textfield;
 }
 
-.elo-rating::-webkit-inner-spin-button{display:none;}
-.elo-rating:focus{border-color:var(--yellow);}
+.liga-input::-webkit-inner-spin-button{display:none;}
+.liga-input:focus{border-color:var(--yellow);}
+
+/* elo inputs */
+.elo-row{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  margin-bottom:8px;
+}
+
+.elo-row:last-child{margin-bottom:0;}
+
+.elo-name{
+  flex:2;
+  background:transparent;
+  border:none;
+  border-bottom:1px solid var(--border);
+  color:var(--text);
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;
+  padding:4px 0;
+  outline:none;
+  transition:border-color .2s;
+}
+
+.elo-name:focus{border-bottom-color:var(--elo);}
+
+.elo-rating-input{
+  flex:1;
+  padding:9px 4px;
+  border-radius:8px;
+  border:1px solid var(--elo-border);
+  background:var(--bg);
+  color:var(--elo);
+  font-family:'JetBrains Mono',monospace;
+  font-size:14px;
+  text-align:center;
+  outline:none;
+  -moz-appearance:textfield;
+}
+
+.elo-rating-input::-webkit-inner-spin-button{display:none;}
+.elo-rating-input:focus{border-color:var(--elo);}
+
+.elo-hint{
+  font-size:9px;
+  color:var(--muted);
+  text-align:center;
+  letter-spacing:1px;
+  margin-top:6px;
+}
+
+/* BUTTONS */
+.btns{display:flex;gap:8px;}
+
+.btn-calc{
+  flex:2;
+  padding:13px;
+  border:none;
+  border-radius:10px;
+  font-family:'Rajdhani',sans-serif;
+  font-size:15px;
+  font-weight:700;
+  letter-spacing:2px;
+  cursor:pointer;
+  transition:transform .1s, opacity .15s;
+}
+
+.btn-calc:active{transform:scale(.97);}
+
+.dc .btn-calc{background:var(--dc);color:#000;}
+.elo-panel .btn-calc{background:var(--elo);color:#000;}
+
+.btn-reset{
+  flex:1;
+  padding:13px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:var(--surface);
+  color:var(--muted);
+  font-family:'Rajdhani',sans-serif;
+  font-size:14px;
+  font-weight:600;
+  letter-spacing:1px;
+  cursor:pointer;
+  transition:transform .1s;
+}
+
+.btn-reset:active{transform:scale(.97);}
+
+/* RESULTS */
+.results{
+  display:none;
+  flex-direction:column;
+  gap:10px;
+  animation:fadeUp .3s ease;
+}
+
+.results.visible{display:flex;}
+
+.lambda-bar{
+  text-align:center;
+  font-size:10px;
+  letter-spacing:1px;
+  padding:6px;
+  border-radius:8px;
+}
+
+.dc .lambda-bar{color:var(--dc);background:var(--dc-dim);}
+.elo-panel .lambda-bar{color:var(--elo);background:var(--elo-dim);}
+
+/* prob grid */
+.prob-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:6px;
+}
+
+.prob-box{
+  border-radius:10px;
+  padding:12px 6px;
+  text-align:center;
+  border:1px solid transparent;
+}
+
+.prob-box .box-label{font-size:8px;letter-spacing:1px;margin-bottom:4px;opacity:.7;}
+.prob-box .pct{font-family:'Rajdhani',sans-serif;font-size:28px;font-weight:700;line-height:1;}
+.prob-box .fair{font-size:9px;margin-top:4px;opacity:.6;}
+
+/* DC colors */
+.dc .win-box{background:rgba(0,200,150,.08);border-color:rgba(0,200,150,.2);color:var(--dc);}
+.dc .draw-box{background:rgba(255,214,10,.06);border-color:rgba(255,214,10,.15);color:var(--yellow);}
+.dc .lose-box{background:rgba(255,59,48,.06);border-color:rgba(255,59,48,.15);color:var(--red);}
+
+/* Elo colors */
+.elo-panel .win-box{background:rgba(255,149,0,.08);border-color:rgba(255,149,0,.25);color:var(--elo);}
+.elo-panel .draw-box{background:rgba(255,214,10,.06);border-color:rgba(255,214,10,.15);color:var(--yellow);}
+.elo-panel .lose-box{background:rgba(10,132,255,.06);border-color:rgba(10,132,255,.2);color:var(--blue);}
+
+/* score */
+.score-card{
+  border-radius:10px;
+  padding:12px;
+  text-align:center;
+  border:1px solid var(--border);
+  background:var(--surface2);
+}
+
+.score-title{font-size:8px;letter-spacing:2px;color:var(--muted);margin-bottom:6px;}
+.score-val{font-family:'Rajdhani',sans-serif;font-size:36px;font-weight:700;letter-spacing:6px;}
+.dc .score-val{color:var(--dc);}
+.elo-panel .score-val{color:var(--elo);}
+.score-prob{font-size:10px;color:var(--muted);margin-top:4px;}
+
+/* conclusion */
+.conclusion{
+  border-radius:10px;
+  padding:12px;
+  border:1px solid var(--border);
+  background:var(--surface2);
+  font-size:12px;
+  line-height:1.7;
+}
+
+.conclusion .sec-title{font-size:8px;letter-spacing:2px;color:var(--muted);margin-bottom:8px;}
+
+/* edge section */
+.edge-section{
+  border-radius:10px;
+  padding:12px;
+  border:1px solid var(--border);
+  background:var(--surface);
+}
+
+.edge-section .sec-title{font-size:8px;letter-spacing:2px;color:var(--muted);margin-bottom:6px;}
+.edge-hint{font-size:9px;color:var(--muted);text-align:center;margin-bottom:8px;}
+
+.edge-inputs{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:6px;
+  margin-bottom:8px;
+}
+
+.edge-field{display:flex;flex-direction:column;gap:3px;}
+.edge-field label{font-size:8px;letter-spacing:1px;color:var(--muted);text-align:center;}
+
+.btn-edge{
+  width:100%;
+  padding:11px;
+  border:none;
+  border-radius:8px;
+  font-family:'Rajdhani',sans-serif;
+  font-size:14px;
+  font-weight:700;
+  letter-spacing:2px;
+  cursor:pointer;
+  transition:transform .1s;
+}
+
+.btn-edge:active{transform:scale(.97);}
+.dc .btn-edge{background:var(--dc-dim);color:var(--dc);border:1px solid var(--dc-border);}
+.elo-panel .btn-edge{background:var(--elo-dim);color:var(--elo);border:1px solid var(--elo-border);}
+
+.edge-results{margin-top:8px;display:flex;flex-direction:column;gap:5px;}
+
+.edge-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:9px 10px;
+  border-radius:8px;
+  font-size:11px;
+}
+
+.edge-item .e-label{color:var(--text2);}
+.edge-item .e-val{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;}
+.edge-item .e-badge{font-size:8px;padding:2px 6px;border-radius:4px;letter-spacing:1px;}
+
+.e-pos{background:rgba(0,200,150,.08);}
+.e-pos .e-val{color:var(--dc);}
+.e-pos .e-badge{background:rgba(0,200,150,.15);color:var(--dc);}
+
+.e-neg{background:rgba(255,59,48,.06);}
+.e-neg .e-val{color:var(--red);}
+.e-neg .e-badge{background:rgba(255,59,48,.12);color:var(--red);}
+
+.e-neu{background:rgba(255,214,10,.06);}
+.e-neu .e-val{color:var(--yellow);}
+.e-neu .e-badge{background:rgba(255,214,10,.1);color:var(--yellow);}
+
+/* elo special colors for edge */
+.elo-panel .e-pos .e-val{color:var(--elo);}
+.elo-panel .e-pos .e-badge{background:rgba(255,149,0,.15);color:var(--elo);}
+.elo-panel .e-pos{background:rgba(255,149,0,.08);}
 </style>
 </head>
 <body>
-
 <div class="app">
 
-  <h1>⚽ POISSON EDGE</h1>
-  <p class="subtitle">CALCULADORA DE VALOR EN APUESTAS</p>
+  <div class="header">
+    <div class="logo">
+      <span class="dc-color">DC</span>
+      <span class="sep">·</span>
+      <span class="elo-color">ELO</span>
+      <span style="color:var(--muted);font-size:18px;margin-left:8px;">EDGE</span>
+    </div>
+    <div class="tagline">CALCULADORA DE VALOR EN APUESTAS</div>
+  </div>
 
   <!-- TABS -->
   <div class="tabs">
-    <button class="tab active" id="tab_dc">DIXON-COLES</button>
+    <button class="tab dc-active" id="tab_dc">DIXON-COLES</button>
     <button class="tab" id="tab_elo">ELO</button>
   </div>
 
-  <!-- MODO DIXON-COLES -->
-  <div id="mode_dc" style="display:flex;flex-direction:column;gap:14px;">
+  <!-- ===== PANEL DIXON-COLES ===== -->
+  <div class="panel dc active" id="panel_dc">
 
-  <!-- LIGA PROMEDIO -->
-  <div class="config-card">
-    <div>
-      <div class="config-label">PROMEDIO LIGA</div>
-      <div class="config-hint">goles/partido de tu liga<br>Liga 1 Perú ≈ 2.5</div>
-    </div>
-    <div class="config-input-wrap">
-      <label>GOL/PJ</label>
-      <input type="number" id="liga_avg" value="2.50" step="0.01" min="1" max="5">
-    </div>
-  </div>
-
-  <!-- LOCAL -->
-  <div class="team-card">
-    <div class="team-label">🏠 LOCAL</div>
-    <input class="team-name-input" id="name_home" placeholder="Nombre del equipo...">
-    <div class="inputs">
-      <div class="field"><label>GOL A FAVOR</label><input type="number" id="gf_home" placeholder="0"></div>
-      <div class="field"><label>GOL EN CONTRA</label><input type="number" id="ga_home" placeholder="0"></div>
-      <div class="field"><label>PARTIDOS</label><input type="number" id="p_home" placeholder="0"></div>
-    </div>
-  </div>
-
-  <!-- VISITANTE -->
-  <div class="team-card">
-    <div class="team-label">✈️ VISITANTE</div>
-    <input class="team-name-input" id="name_away" placeholder="Nombre del equipo...">
-    <div class="inputs">
-      <div class="field"><label>GOL A FAVOR</label><input type="number" id="gf_away" placeholder="0"></div>
-      <div class="field"><label>GOL EN CONTRA</label><input type="number" id="ga_away" placeholder="0"></div>
-      <div class="field"><label>PARTIDOS</label><input type="number" id="p_away" placeholder="0"></div>
-    </div>
-  </div>
-
-  <div class="buttons">
-    <button class="calc" id="btn_calc">CALCULAR</button>
-    <button class="reset" id="btn_reset">LIMPIAR</button>
-  </div>
-
-  </div><!-- fin mode_dc -->
-
-  <!-- MODO ELO -->
-  <div id="mode_elo" style="display:none;flex-direction:column;gap:14px;">
-
-  <div class="elo-card">
-    <div class="team-label" style="margin-bottom:12px;">⚽ RATINGS ELO <span style="font-size:9px;color:var(--muted)">clubelo.com</span></div>
-    <div class="elo-row">
-      <input class="elo-team-name" id="elo_name_home" placeholder="🏠 Equipo local...">
-      <input type="number" class="elo-rating" id="elo_home" placeholder="1500">
-    </div>
-    <div class="elo-row">
-      <input class="elo-team-name" id="elo_name_away" placeholder="✈️ Equipo visitante...">
-      <input type="number" class="elo-rating" id="elo_away" placeholder="1400">
-    </div>
-  </div>
-
-  <div class="buttons">
-    <button class="calc" id="btn_elo_calc">CALCULAR</button>
-    <button class="reset" id="btn_elo_reset">LIMPIAR</button>
-  </div>
-
-  <!-- BOOKIE ELO -->
-  <div class="edge-card" id="elo_bookie_section" style="display:none;">
-    <div class="section-title">COMPARAR CON BOOKIE (opcional)</div>
-    <p class="hint">Ingresa las cuotas reales para ver si hay edge</p>
-    <div class="edge-inputs">
-      <div class="edge-row"><label>CUOTA LOCAL</label><input type="number" id="elo_bookie_w" placeholder="1.50" step="0.01"></div>
-      <div class="edge-row"><label>CUOTA EMPATE</label><input type="number" id="elo_bookie_d" placeholder="3.50" step="0.01"></div>
-      <div class="edge-row"><label>CUOTA VISIT.</label><input type="number" id="elo_bookie_l" placeholder="5.00" step="0.01"></div>
-    </div>
-    <button class="calc" id="btn_elo_edge" style="margin-top:10px;width:100%;padding:10px;">VER EDGE</button>
-    <div class="edge-results" id="elo_edge_results"></div>
-  </div>
-
-  </div><!-- fin mode_elo -->
-
-  <!-- RESULTADOS -->
-  <div class="result" id="res">
-
-    <div class="lambdas" id="lam"></div>
-
-    <!-- probabilidades -->
-    <div class="prob-grid">
-      <div class="prob-box win-box">
-        <div class="label" id="label_win">LOCAL</div>
-        <div class="pct" id="w"></div>
-        <div class="odds" id="fair_w"></div>
-      </div>
-      <div class="prob-box draw-box">
-        <div class="label">EMPATE</div>
-        <div class="pct" id="d"></div>
-        <div class="odds" id="fair_d"></div>
-      </div>
-      <div class="prob-box lose-box">
-        <div class="label" id="label_lose">VISIT.</div>
-        <div class="pct" id="l"></div>
-        <div class="odds" id="fair_l"></div>
+    <!-- Liga avg -->
+    <div class="card">
+      <div class="liga-row">
+        <div class="liga-info">
+          <div class="title">PROMEDIO LIGA</div>
+          <div class="hint">Liga 1 Perú ≈ 2.5 · La Liga ≈ 2.7</div>
+        </div>
+        <input type="number" class="liga-input" id="liga_avg" value="2.50" step="0.01" min="1" max="6">
       </div>
     </div>
 
-    <!-- marcador más probable -->
-    <div class="score-card">
-      <div class="section-title">MARCADOR MÁS PROBABLE</div>
-      <div class="best-score" id="best_score">-</div>
-      <div class="score-prob" id="best_score_prob"></div>
-    </div>
-
-    <!-- conclusión automática -->
-    <div class="conclusion-card" id="conclusion_card">
-      <div class="section-title">CONCLUSIÓN DEL MODELO</div>
-      <div class="conclusion-text" id="conclusion_text"></div>
-    </div>
-
-    <!-- edge vs bookie -->
-    <div class="edge-card">
-      <div class="section-title">COMPARAR CON BOOKIE (opcional)</div>
-      <p class="hint">Ingresa las cuotas reales para ver si hay edge</p>
-      <div class="edge-inputs">
-        <div class="edge-row"><label>CUOTA LOCAL</label><input type="number" id="bookie_w" placeholder="1.50" step="0.01"></div>
-        <div class="edge-row"><label>CUOTA EMPATE</label><input type="number" id="bookie_d" placeholder="3.50" step="0.01"></div>
-        <div class="edge-row"><label>CUOTA VISIT.</label><input type="number" id="bookie_l" placeholder="5.00" step="0.01"></div>
+    <!-- Local DC -->
+    <div class="card">
+      <div class="card-label">🏠 LOCAL</div>
+      <input class="team-name" id="dc_name_home" placeholder="Equipo local...">
+      <div class="fields">
+        <div class="field"><label>GOL A FAVOR</label><input type="number" id="dc_gf_home" placeholder="0"></div>
+        <div class="field"><label>GOL EN CONTRA</label><input type="number" id="dc_ga_home" placeholder="0"></div>
+        <div class="field"><label>PARTIDOS</label><input type="number" id="dc_p_home" placeholder="0"></div>
       </div>
-      <button class="calc" id="btn_edge" style="margin-top:10px;width:100%;padding:10px;">VER EDGE</button>
-      <div class="edge-results" id="edge_results"></div>
     </div>
 
-  </div>
+    <!-- Visitante DC -->
+    <div class="card">
+      <div class="card-label">✈️ VISITANTE</div>
+      <input class="team-name" id="dc_name_away" placeholder="Equipo visitante...">
+      <div class="fields">
+        <div class="field"><label>GOL A FAVOR</label><input type="number" id="dc_gf_away" placeholder="0"></div>
+        <div class="field"><label>GOL EN CONTRA</label><input type="number" id="dc_ga_away" placeholder="0"></div>
+        <div class="field"><label>PARTIDOS</label><input type="number" id="dc_p_away" placeholder="0"></div>
+      </div>
+    </div>
+
+    <div class="btns">
+      <button class="btn-calc" id="btn_dc_calc">CALCULAR</button>
+      <button class="btn-reset" id="btn_dc_reset">LIMPIAR</button>
+    </div>
+
+    <!-- RESULTADOS DC -->
+    <div class="results" id="dc_results">
+      <div class="lambda-bar" id="dc_lam"></div>
+      <div class="prob-grid">
+        <div class="prob-box win-box">
+          <div class="box-label" id="dc_label_win">LOCAL</div>
+          <div class="pct" id="dc_w"></div>
+          <div class="fair" id="dc_fair_w"></div>
+        </div>
+        <div class="prob-box draw-box">
+          <div class="box-label">EMPATE</div>
+          <div class="pct" id="dc_d"></div>
+          <div class="fair" id="dc_fair_d"></div>
+        </div>
+        <div class="prob-box lose-box">
+          <div class="box-label" id="dc_label_lose">VISIT.</div>
+          <div class="pct" id="dc_l"></div>
+          <div class="fair" id="dc_fair_l"></div>
+        </div>
+      </div>
+      <div class="score-card">
+        <div class="score-title">MARCADOR MÁS PROBABLE</div>
+        <div class="score-val" id="dc_score">—</div>
+        <div class="score-prob" id="dc_score_prob"></div>
+      </div>
+      <div class="conclusion">
+        <div class="sec-title">CONCLUSIÓN DEL MODELO</div>
+        <div id="dc_conclusion"></div>
+      </div>
+      <div class="edge-section">
+        <div class="sec-title">COMPARAR CON BOOKIE</div>
+        <div class="edge-hint">Ingresa cuotas para ver edge</div>
+        <div class="edge-inputs">
+          <div class="edge-field"><label>LOCAL</label><input type="number" id="dc_bw" placeholder="1.50" step="0.01"></div>
+          <div class="edge-field"><label>EMPATE</label><input type="number" id="dc_bd" placeholder="3.50" step="0.01"></div>
+          <div class="edge-field"><label>VISIT.</label><input type="number" id="dc_bl" placeholder="5.00" step="0.01"></div>
+        </div>
+        <button class="btn-edge" id="btn_dc_edge">VER EDGE</button>
+        <div class="edge-results" id="dc_edge_results"></div>
+      </div>
+    </div>
+
+  </div><!-- fin panel DC -->
+
+  <!-- ===== PANEL ELO ===== -->
+  <div class="panel elo-panel" id="panel_elo">
+
+    <div class="card">
+      <div class="card-label">⚡ RATINGS ELO</div>
+      <div class="elo-row">
+        <input class="elo-name" id="elo_name_home" placeholder="🏠 Equipo local...">
+        <input type="number" class="elo-rating-input" id="elo_home" placeholder="1500">
+      </div>
+      <div class="elo-row">
+        <input class="elo-name" id="elo_name_away" placeholder="✈️ Equipo visitante...">
+        <input type="number" class="elo-rating-input" id="elo_away" placeholder="1400">
+      </div>
+      <div class="elo-hint">Busca ratings en clubelo.com</div>
+    </div>
+
+    <div class="btns">
+      <button class="btn-calc" id="btn_elo_calc">CALCULAR</button>
+      <button class="btn-reset" id="btn_elo_reset">LIMPIAR</button>
+    </div>
+
+    <!-- RESULTADOS ELO -->
+    <div class="results" id="elo_results">
+      <div class="lambda-bar" id="elo_lam"></div>
+      <div class="prob-grid">
+        <div class="prob-box win-box">
+          <div class="box-label" id="elo_label_win">LOCAL</div>
+          <div class="pct" id="elo_w"></div>
+          <div class="fair" id="elo_fair_w"></div>
+        </div>
+        <div class="prob-box draw-box">
+          <div class="box-label">EMPATE</div>
+          <div class="pct" id="elo_d"></div>
+          <div class="fair" id="elo_fair_d"></div>
+        </div>
+        <div class="prob-box lose-box">
+          <div class="box-label" id="elo_label_lose">VISIT.</div>
+          <div class="pct" id="elo_l"></div>
+          <div class="fair" id="elo_fair_l"></div>
+        </div>
+      </div>
+      <div class="score-card">
+        <div class="score-title">RESULTADO MÁS PROBABLE</div>
+        <div class="score-val" id="elo_score">—</div>
+        <div class="score-prob" id="elo_score_prob"></div>
+      </div>
+      <div class="conclusion">
+        <div class="sec-title">CONCLUSIÓN DEL MODELO</div>
+        <div id="elo_conclusion"></div>
+      </div>
+      <div class="edge-section">
+        <div class="sec-title">COMPARAR CON BOOKIE</div>
+        <div class="edge-hint">Ingresa cuotas para ver edge</div>
+        <div class="edge-inputs">
+          <div class="edge-field"><label>LOCAL</label><input type="number" id="elo_bw" placeholder="1.50" step="0.01"></div>
+          <div class="edge-field"><label>EMPATE</label><input type="number" id="elo_bd" placeholder="3.50" step="0.01"></div>
+          <div class="edge-field"><label>VISIT.</label><input type="number" id="elo_bl" placeholder="5.00" step="0.01"></div>
+        </div>
+        <button class="btn-edge" id="btn_elo_edge">VER EDGE</button>
+        <div class="edge-results" id="elo_edge_results"></div>
+      </div>
+    </div>
+
+  </div><!-- fin panel ELO -->
 
 </div>
 
 <script>
-let probW=0, probD=0, probL=0;
-let nameHome='LOCAL', nameAway='VISIT.';
-
+// ============ UTILS ============
 function fact(n){return n<=1?1:n*fact(n-1);}
 function poisson(l,k){return(Math.pow(l,k)*Math.exp(-l))/fact(k);}
 
-// Corrección Dixon-Coles (paper 1997, rho=-0.13)
 function tau(i,j,lH,lA){
-  const rho=-0.13;
+  var rho=-0.13;
   if(i===0&&j===0) return 1-lH*lA*rho;
   if(i===1&&j===0) return 1+lA*rho;
   if(i===0&&j===1) return 1+lH*rho;
@@ -612,48 +649,79 @@ function tau(i,j,lH,lA){
   return 1;
 }
 
-function calc(){
-  const gfH=+document.getElementById('gf_home').value;
-  const gaH=+document.getElementById('ga_home').value;
-  const pH=+document.getElementById('p_home').value;
-  const gfA=+document.getElementById('gf_away').value;
-  const gaA=+document.getElementById('ga_away').value;
-  const pA=+document.getElementById('p_away').value;
-  const ligaAvg=+document.getElementById('liga_avg').value||2.5;
-  nameHome=document.getElementById('name_home').value||'LOCAL';
-  nameAway=document.getElementById('name_away').value||'VISIT.';
+function edgeHTML(items){
+  var html='';
+  items.forEach(function(item){
+    if(!item.bookie) return;
+    var bookieProb=1/item.bookie;
+    var edge=((item.prob-bookieProb)/bookieProb)*100;
+    var ev=((item.prob*item.bookie)-1)*100;
+    var cls,badgeText;
+    if(edge>3){cls='e-pos';badgeText='✅ EDGE';}
+    else if(edge<-3){cls='e-neg';badgeText='❌ SIN VALOR';}
+    else{cls='e-neu';badgeText='⚠️ NEUTRO';}
+    html+='<div class="edge-item '+cls+'">'+
+      '<span class="e-label">'+item.label+'</span>'+
+      '<span class="e-val">EV '+(ev>0?'+':'')+ev.toFixed(1)+'%</span>'+
+      '<span class="e-badge">'+badgeText+'</span>'+
+      '</div>';
+  });
+  return html;
+}
 
-  if(!gfH||!gaH||!pH||!gfA||!gaA||!pA){alert("Completa todos los campos numéricos");return;}
+function conclusionHTML(win,draw,lose,accent,nameH,nameA){
+  var max=Math.max(win,draw,lose);
+  var dominantName, color;
+  if(max===win){dominantName=nameH.toUpperCase()+' GANA';color=accent;}
+  else if(max===draw){dominantName='EMPATE';color='var(--yellow)';}
+  else{dominantName=nameA.toUpperCase()+' GANA';color=accent;}
+  var confianza;
+  if(max>=0.55) confianza='ALTA ●●●';
+  else if(max>=0.40) confianza='MEDIA ●●○';
+  else confianza='BAJA ●○○';
+  return 'Favorece <strong style="color:'+color+'">'+dominantName+'</strong> '+
+    'con <strong style="color:'+color+'">'+(max*100).toFixed(1)+'%</strong><br>'+
+    'Confianza: <strong style="color:'+color+'">'+confianza+'</strong>';
+}
 
-  // --- FÓRMULA DIXON-COLES STYLE: índices relativos al promedio de liga ---
-  const ligaHalf=ligaAvg/2; // goles esperados por equipo (mitad del promedio)
+// ============ DIXON-COLES STATE ============
+var dcProbs={w:0,d:0,l:0};
+var dcNames={h:'LOCAL',a:'VISIT.'};
 
-  const atkH=gfH/pH/ligaHalf;   // índice ataque local    (>1 = mejor que promedio)
-  const defH=gaH/pH/ligaHalf;   // índice defensa local   (>1 = peor que promedio)
-  const atkA=gfA/pA/ligaHalf;   // índice ataque visitante
-  const defA=gaA/pA/ligaHalf;   // índice defensa visitante (>1 = peor que promedio)
+function calcDC(){
+  var gfH=+document.getElementById('dc_gf_home').value;
+  var gaH=+document.getElementById('dc_ga_home').value;
+  var pH=+document.getElementById('dc_p_home').value;
+  var gfA=+document.getElementById('dc_gf_away').value;
+  var gaA=+document.getElementById('dc_ga_away').value;
+  var pA=+document.getElementById('dc_p_away').value;
+  var ligaAvg=+document.getElementById('liga_avg').value||2.5;
+  dcNames.h=document.getElementById('dc_name_home').value||'LOCAL';
+  dcNames.a=document.getElementById('dc_name_away').value||'VISIT.';
 
-  // lambda = índice ataque × índice defensa rival × goles esperados por equipo
-  const homeL=atkH*defA*ligaHalf;
-  const awayL=atkA*defH*ligaHalf;
+  if(!gfH||!gaH||!pH||!gfA||!gaA||!pA){alert("Completa todos los campos");return;}
 
-  let win=0,draw=0,lose=0;
-  let bestP=0,bestI=0,bestJ=0;
-  let total=0;
-  const grid=[];
+  var ligaHalf=ligaAvg/2;
+  var atkH=gfH/pH/ligaHalf, defH=gaH/pH/ligaHalf;
+  var atkA=gfA/pA/ligaHalf, defA=gaA/pA/ligaHalf;
+  var homeL=atkH*defA*ligaHalf;
+  var awayL=atkA*defH*ligaHalf;
 
-  for(let i=0;i<=7;i++){
+  var win=0,draw=0,lose=0,total=0;
+  var bestP=0,bestI=0,bestJ=0;
+  var grid=[];
+
+  for(var i=0;i<=7;i++){
     grid[i]=[];
-    for(let j=0;j<=7;j++){
-      const p=poisson(homeL,i)*poisson(awayL,j)*tau(i,j,homeL,awayL);
-      grid[i][j]=p;
-      total+=p;
+    for(var j=0;j<=7;j++){
+      var p=poisson(homeL,i)*poisson(awayL,j)*tau(i,j,homeL,awayL);
+      grid[i][j]=p; total+=p;
     }
   }
 
-  for(let i=0;i<=7;i++){
-    for(let j=0;j<=7;j++){
-      const p=grid[i][j]/total;
+  for(var i=0;i<=7;i++){
+    for(var j=0;j<=7;j++){
+      var p=grid[i][j]/total;
       if(i>j) win+=p;
       else if(i===j) draw+=p;
       else lose+=p;
@@ -661,247 +729,135 @@ function calc(){
     }
   }
 
-  probW=win; probD=draw; probL=lose;
+  dcProbs={w:win,d:draw,l:lose};
 
-  document.getElementById('label_win').textContent=nameHome.substring(0,6).toUpperCase();
-  document.getElementById('label_lose').textContent=nameAway.substring(0,6).toUpperCase();
-  document.getElementById('lam').textContent='λ local '+homeL.toFixed(2)+'  ·  λ visit '+awayL.toFixed(2);
-  document.getElementById('w').textContent=(win*100).toFixed(1)+'%';
-  document.getElementById('d').textContent=(draw*100).toFixed(1)+'%';
-  document.getElementById('l').textContent=(lose*100).toFixed(1)+'%';
-  document.getElementById('fair_w').textContent='cuota justa '+(1/win).toFixed(2);
-  document.getElementById('fair_d').textContent='cuota justa '+(1/draw).toFixed(2);
-  document.getElementById('fair_l').textContent='cuota justa '+(1/lose).toFixed(2);
-  document.getElementById('best_score').textContent=bestI+' — '+bestJ;
-  document.getElementById('best_score_prob').textContent=(bestP*100).toFixed(1)+'% de probabilidad';
-  document.getElementById('res').style.display='flex';
-  document.getElementById('edge_results').innerHTML='';
-
-  // --- CONCLUSIÓN AUTOMÁTICA ---
-  showConclusion(win, draw, lose, bestI, bestJ, bestP);
+  document.getElementById('dc_lam').textContent='λ local '+homeL.toFixed(2)+'  ·  λ visit '+awayL.toFixed(2)+'  ·  DC ρ -0.13';
+  document.getElementById('dc_label_win').textContent=dcNames.h.substring(0,7).toUpperCase();
+  document.getElementById('dc_label_lose').textContent=dcNames.a.substring(0,7).toUpperCase();
+  document.getElementById('dc_w').textContent=(win*100).toFixed(1)+'%';
+  document.getElementById('dc_d').textContent=(draw*100).toFixed(1)+'%';
+  document.getElementById('dc_l').textContent=(lose*100).toFixed(1)+'%';
+  document.getElementById('dc_fair_w').textContent='justa '+(1/win).toFixed(2);
+  document.getElementById('dc_fair_d').textContent='justa '+(1/draw).toFixed(2);
+  document.getElementById('dc_fair_l').textContent='justa '+(1/lose).toFixed(2);
+  document.getElementById('dc_score').textContent=bestI+' — '+bestJ;
+  document.getElementById('dc_score_prob').textContent=(bestP*100).toFixed(1)+'% de probabilidad';
+  document.getElementById('dc_conclusion').innerHTML=conclusionHTML(win,draw,lose,'var(--dc)',dcNames.h,dcNames.a);
+  document.getElementById('dc_edge_results').innerHTML='';
+  document.getElementById('dc_results').classList.add('visible');
 }
 
-function showConclusion(win, draw, lose, bestI, bestJ, bestP){
-  const card = document.getElementById('conclusion_card');
-  const txt  = document.getElementById('conclusion_text');
-
-  // dominante = resultado con mayor probabilidad
-  const max = Math.max(win, draw, lose);
-  let dominant, dominantName;
-  if(max === win){
-    dominant = win;
-    dominantName = nameHome.toUpperCase() + ' GANA';
-  } else if(max === draw){
-    dominant = draw;
-    dominantName = 'EMPATE';
-  } else {
-    dominant = lose;
-    dominantName = nameAway.toUpperCase() + ' GANA';
-  }
-
-  // nivel de confianza
-  let confianza, color;
-  if(dominant >= 0.55){ confianza='ALTA'; color='var(--green)'; }
-  else if(dominant >= 0.40){ confianza='MEDIA'; color='var(--yellow)'; }
-  else { confianza='BAJA'; color='var(--red)'; }
-
-  // diferencia entre lambdas para detectar partido parejo
-  const lH = (+document.getElementById('gf_home').value / +document.getElementById('p_home').value *
-              (+document.getElementById('ga_away').value / +document.getElementById('p_away').value)) /
-              (+document.getElementById('liga_avg').value||2.5);
-  const lA = (+document.getElementById('gf_away').value / +document.getElementById('p_away').value *
-              (+document.getElementById('ga_home').value / +document.getElementById('p_home').value)) /
-              (+document.getElementById('liga_avg').value||2.5);
-
-  const ratio = Math.max(lH,lA) / Math.min(lH,lA);
-  let contexto = '';
-  if(ratio >= 2.0){
-    contexto = 'Partido muy desequilibrado — las lambdas difieren significativamente.';
-  } else if(ratio >= 1.4){
-    contexto = 'Partido con diferencia clara entre equipos.';
-  } else {
-    contexto = 'Partido parejo — cualquier resultado es posible.';
-  }
-
-  txt.innerHTML =
-    'El modelo favorece <strong style="color:'+color+'">'+dominantName+'</strong> '+
-    'con <strong style="color:'+color+'">'+(dominant*100).toFixed(1)+'%</strong> '+
-    'de probabilidad.<br><br>'+
-    'Confianza del modelo: <strong style="color:'+color+'">'+confianza+'</strong><br><br>'+
-    'Marcador más probable: <strong style="color:var(--blue)">'+bestI+' — '+bestJ+'</strong> '+
-    '('+(bestP*100).toFixed(1)+'%)<br><br>'+
-    '<span style="font-size:10px;color:var(--muted)">'+contexto+'</span>';
-
-  card.style.display='block';
-}
-
-function calcEdge(){
-  if(!probW){alert("Primero calcula el partido");return;}
-  const bW=+document.getElementById('bookie_w').value;
-  const bD=+document.getElementById('bookie_d').value;
-  const bL=+document.getElementById('bookie_l').value;
+function calcDCEdge(){
+  if(!dcProbs.w){alert("Primero calcula el partido");return;}
+  var bW=+document.getElementById('dc_bw').value;
+  var bD=+document.getElementById('dc_bd').value;
+  var bL=+document.getElementById('dc_bl').value;
   if(!bW&&!bD&&!bL){alert("Ingresa al menos una cuota");return;}
-
-  const items=[
-    {label:nameHome.substring(0,6).toUpperCase(),prob:probW,bookie:bW},
-    {label:'EMPATE',prob:probD,bookie:bD},
-    {label:nameAway.substring(0,6).toUpperCase(),prob:probL,bookie:bL},
+  var items=[
+    {label:dcNames.h.substring(0,6).toUpperCase(),prob:dcProbs.w,bookie:bW},
+    {label:'EMPATE',prob:dcProbs.d,bookie:bD},
+    {label:dcNames.a.substring(0,6).toUpperCase(),prob:dcProbs.l,bookie:bL},
   ];
-
-  let html='';
-  items.forEach(function(item){
-    if(!item.bookie) return;
-    const bookieProb=1/item.bookie;
-    const edge=((item.prob-bookieProb)/bookieProb)*100;
-    const ev=((item.prob*item.bookie)-1)*100;
-    let cls,badge,badgeText;
-    if(edge>3){cls='edge-positive';badge='badge-pos';badgeText='✅ EDGE';}
-    else if(edge<-3){cls='edge-negative';badge='badge-neg';badgeText='❌ SIN VALOR';}
-    else{cls='edge-neutral';badge='badge-neu';badgeText='⚠️ NEUTRO';}
-    html+='<div class="edge-item '+cls+'"><span class="edge-label">'+item.label+'</span><span class="edge-value">EV '+(ev>0?'+':'')+ev.toFixed(1)+'%</span><span class="edge-badge '+badge+'">'+badgeText+'</span></div>';
-  });
-  document.getElementById('edge_results').innerHTML=html;
+  document.getElementById('dc_edge_results').innerHTML=edgeHTML(items);
 }
 
-function resetForm(){
-  document.querySelectorAll('input').forEach(function(i){
-    if(i.id==='liga_avg') i.value='2.50';
-    else i.value='';
+function resetDC(){
+  ['dc_gf_home','dc_ga_home','dc_p_home','dc_gf_away','dc_ga_away','dc_p_away',
+   'dc_name_home','dc_name_away','dc_bw','dc_bd','dc_bl'].forEach(function(id){
+    document.getElementById(id).value='';
   });
-  document.getElementById('res').style.display='none';
-  document.getElementById('edge_results').innerHTML='';
-  document.getElementById('conclusion_card').style.display='none';
-  probW=probD=probL=0;
-  nameHome='LOCAL'; nameAway='VISIT.';
+  document.getElementById('liga_avg').value='2.50';
+  document.getElementById('dc_results').classList.remove('visible');
+  document.getElementById('dc_edge_results').innerHTML='';
+  dcProbs={w:0,d:0,l:0};
 }
 
-document.addEventListener('DOMContentLoaded', function(){
-  document.getElementById('btn_calc').addEventListener('click', calc);
-  document.getElementById('btn_reset').addEventListener('click', resetForm);
-  document.getElementById('btn_edge').addEventListener('click', calcEdge);
-  document.getElementById('btn_elo_calc').addEventListener('click', calcElo);
-  document.getElementById('btn_elo_reset').addEventListener('click', resetElo);
-  document.getElementById('btn_elo_edge').addEventListener('click', calcEloEdge);
-
-  // TAB SWITCHING
-  document.getElementById('tab_dc').addEventListener('click', function(){
-    document.getElementById('mode_dc').style.display='flex';
-    document.getElementById('mode_elo').style.display='none';
-    document.getElementById('res').style.display='none';
-    document.getElementById('tab_dc').classList.add('active');
-    document.getElementById('tab_elo').classList.remove('active');
-  });
-
-  document.getElementById('tab_elo').addEventListener('click', function(){
-    document.getElementById('mode_dc').style.display='none';
-    document.getElementById('mode_elo').style.display='flex';
-    document.getElementById('tab_elo').classList.add('active');
-    document.getElementById('tab_dc').classList.remove('active');
-  });
-});
-
-// --- ELO ---
-let eloProbW=0, eloProbD=0, eloProbL=0;
+// ============ ELO STATE ============
+var eloProbs={w:0,d:0,l:0};
+var eloNames={h:'LOCAL',a:'VISIT.'};
 
 function calcElo(){
-  const eloH=+document.getElementById('elo_home').value;
-  const eloA=+document.getElementById('elo_away').value;
-  const nameH=document.getElementById('elo_name_home').value||'LOCAL';
-  const nameA=document.getElementById('elo_name_away').value||'VISIT.';
+  var eloH=+document.getElementById('elo_home').value;
+  var eloA=+document.getElementById('elo_away').value;
+  eloNames.h=document.getElementById('elo_name_home').value||'LOCAL';
+  eloNames.a=document.getElementById('elo_name_away').value||'VISIT.';
 
   if(!eloH||!eloA){alert("Ingresa los ratings Elo de ambos equipos");return;}
 
-  // probabilidad de victoria local según Elo
-  const probH = 1/(1+Math.pow(10,(eloA-eloH)/400));
-  // empate estimado (Dixon & Coles: draw rate ~25-28% ajustado por diferencia)
-  const diff = Math.abs(eloH-eloA);
-  const drawRate = Math.max(0.10, 0.28 - diff*0.0003);
-  // distribuir el resto entre victoria y derrota
-  const remaining = 1 - drawRate;
-  const win  = probH * remaining;
-  const lose = (1-probH) * remaining;
-  const draw = drawRate;
+  var probH=1/(1+Math.pow(10,(eloA-eloH)/400));
+  var diff=Math.abs(eloH-eloA);
+  var drawRate=Math.max(0.10,0.28-diff*0.0003);
+  var remaining=1-drawRate;
+  var win=probH*remaining;
+  var lose=(1-probH)*remaining;
+  var draw=drawRate;
 
-  eloProbW=win; eloProbD=draw; eloProbL=lose;
+  eloProbs={w:win,d:draw,l:lose};
 
-  // mostrar resultado reutilizando los mismos boxes de resultado
-  document.getElementById('label_win').textContent=nameH.substring(0,6).toUpperCase();
-  document.getElementById('label_lose').textContent=nameA.substring(0,6).toUpperCase();
-  document.getElementById('lam').textContent='ELO local '+eloH+'  ·  ELO visit '+eloA+'  ·  Δ '+(eloH-eloA);
-  document.getElementById('w').textContent=(win*100).toFixed(1)+'%';
-  document.getElementById('d').textContent=(draw*100).toFixed(1)+'%';
-  document.getElementById('l').textContent=(lose*100).toFixed(1)+'%';
-  document.getElementById('fair_w').textContent='cuota justa '+(1/win).toFixed(2);
-  document.getElementById('fair_d').textContent='cuota justa '+(1/draw).toFixed(2);
-  document.getElementById('fair_l').textContent='cuota justa '+(1/lose).toFixed(2);
-  document.getElementById('best_score').textContent=win>lose?'1 — 0':'0 — 1';
-  document.getElementById('best_score_prob').textContent='Resultado más probable según Elo';
-
-  // conclusión
-  const max=Math.max(win,draw,lose);
-  let dominantName, color;
-  if(max===win){dominantName=nameH.toUpperCase()+' GANA';color='var(--green)';}
-  else if(max===draw){dominantName='EMPATE';color='var(--yellow)';}
-  else{dominantName=nameA.toUpperCase()+' GANA';color='var(--red)';}
-  let confianza;
-  if(max>=0.55)confianza='ALTA';
-  else if(max>=0.40)confianza='MEDIA';
-  else confianza='BAJA';
-
-  document.getElementById('conclusion_text').innerHTML=
-    'El modelo ELO favorece <strong style="color:'+color+'">'+dominantName+'</strong> '+
-    'con <strong style="color:'+color+'">'+(max*100).toFixed(1)+'%</strong>.<br><br>'+
-    'Confianza: <strong style="color:'+color+'">'+confianza+'</strong><br><br>'+
-    '<span style="font-size:10px;color:var(--muted)">Diferencia de rating: '+(eloH-eloA)+' puntos</span>';
-
-  document.getElementById('res').style.display='flex';
-  document.getElementById('conclusion_card').style.display='block';
-  document.getElementById('elo_bookie_section').style.display='block';
+  var delta=eloH-eloA;
+  document.getElementById('elo_lam').textContent=
+    'ELO local '+eloH+'  ·  ELO visit '+eloA+'  ·  Δ '+(delta>0?'+':'')+delta;
+  document.getElementById('elo_label_win').textContent=eloNames.h.substring(0,7).toUpperCase();
+  document.getElementById('elo_label_lose').textContent=eloNames.a.substring(0,7).toUpperCase();
+  document.getElementById('elo_w').textContent=(win*100).toFixed(1)+'%';
+  document.getElementById('elo_d').textContent=(draw*100).toFixed(1)+'%';
+  document.getElementById('elo_l').textContent=(lose*100).toFixed(1)+'%';
+  document.getElementById('elo_fair_w').textContent='justa '+(1/win).toFixed(2);
+  document.getElementById('elo_fair_d').textContent='justa '+(1/draw).toFixed(2);
+  document.getElementById('elo_fair_l').textContent='justa '+(1/lose).toFixed(2);
+  document.getElementById('elo_score').textContent=win>lose?'LOCAL GANA':'VISIT. GANA';
+  document.getElementById('elo_score_prob').textContent='Según diferencia de rating Elo';
+  document.getElementById('elo_conclusion').innerHTML=conclusionHTML(win,draw,lose,'var(--elo)',eloNames.h,eloNames.a);
   document.getElementById('elo_edge_results').innerHTML='';
+  document.getElementById('elo_results').classList.add('visible');
 }
 
 function calcEloEdge(){
-  if(!eloProbW){alert("Primero calcula el partido");return;}
-  const bW=+document.getElementById('elo_bookie_w').value;
-  const bD=+document.getElementById('elo_bookie_d').value;
-  const bL=+document.getElementById('elo_bookie_l').value;
+  if(!eloProbs.w){alert("Primero calcula el partido");return;}
+  var bW=+document.getElementById('elo_bw').value;
+  var bD=+document.getElementById('elo_bd').value;
+  var bL=+document.getElementById('elo_bl').value;
   if(!bW&&!bD&&!bL){alert("Ingresa al menos una cuota");return;}
-
-  const nameH=document.getElementById('elo_name_home').value||'LOCAL';
-  const nameA=document.getElementById('elo_name_away').value||'VISIT.';
-
-  const items=[
-    {label:nameH.substring(0,6).toUpperCase(),prob:eloProbW,bookie:bW},
-    {label:'EMPATE',prob:eloProbD,bookie:bD},
-    {label:nameA.substring(0,6).toUpperCase(),prob:eloProbL,bookie:bL},
+  var items=[
+    {label:eloNames.h.substring(0,6).toUpperCase(),prob:eloProbs.w,bookie:bW},
+    {label:'EMPATE',prob:eloProbs.d,bookie:bD},
+    {label:eloNames.a.substring(0,6).toUpperCase(),prob:eloProbs.l,bookie:bL},
   ];
-
-  let html='';
-  items.forEach(function(item){
-    if(!item.bookie) return;
-    const bookieProb=1/item.bookie;
-    const edge=((item.prob-bookieProb)/bookieProb)*100;
-    const ev=((item.prob*item.bookie)-1)*100;
-    let cls,badge,badgeText;
-    if(edge>3){cls='edge-positive';badge='badge-pos';badgeText='✅ EDGE';}
-    else if(edge<-3){cls='edge-negative';badge='badge-neg';badgeText='❌ SIN VALOR';}
-    else{cls='edge-neutral';badge='badge-neu';badgeText='⚠️ NEUTRO';}
-    html+='<div class="edge-item '+cls+'"><span class="edge-label">'+item.label+'</span><span class="edge-value">EV '+(ev>0?'+':'')+ev.toFixed(1)+'%</span><span class="edge-badge '+badge+'">'+badgeText+'</span></div>';
-  });
-  document.getElementById('elo_edge_results').innerHTML=html;
+  document.getElementById('elo_edge_results').innerHTML=edgeHTML(items);
 }
 
 function resetElo(){
-  document.getElementById('elo_name_home').value='';
-  document.getElementById('elo_name_away').value='';
-  document.getElementById('elo_home').value='';
-  document.getElementById('elo_away').value='';
-  document.getElementById('res').style.display='none';
-  document.getElementById('conclusion_card').style.display='none';
-  document.getElementById('elo_bookie_section').style.display='none';
+  ['elo_name_home','elo_name_away','elo_home','elo_away','elo_bw','elo_bd','elo_bl'].forEach(function(id){
+    document.getElementById(id).value='';
+  });
+  document.getElementById('elo_results').classList.remove('visible');
   document.getElementById('elo_edge_results').innerHTML='';
-  eloProbW=eloProbD=eloProbL=0;
+  eloProbs={w:0,d:0,l:0};
 }
+
+// ============ TABS ============
+document.addEventListener('DOMContentLoaded',function(){
+  document.getElementById('btn_dc_calc').addEventListener('click',calcDC);
+  document.getElementById('btn_dc_reset').addEventListener('click',resetDC);
+  document.getElementById('btn_dc_edge').addEventListener('click',calcDCEdge);
+  document.getElementById('btn_elo_calc').addEventListener('click',calcElo);
+  document.getElementById('btn_elo_reset').addEventListener('click',resetElo);
+  document.getElementById('btn_elo_edge').addEventListener('click',calcEloEdge);
+
+  document.getElementById('tab_dc').addEventListener('click',function(){
+    document.getElementById('panel_dc').classList.add('active');
+    document.getElementById('panel_elo').classList.remove('active');
+    document.getElementById('tab_dc').classList.add('dc-active');
+    document.getElementById('tab_elo').classList.remove('elo-active');
+  });
+
+  document.getElementById('tab_elo').addEventListener('click',function(){
+    document.getElementById('panel_elo').classList.add('active');
+    document.getElementById('panel_dc').classList.remove('active');
+    document.getElementById('tab_elo').classList.add('elo-active');
+    document.getElementById('tab_dc').classList.remove('dc-active');
+  });
+});
 </script>
 </body>
 </html>
