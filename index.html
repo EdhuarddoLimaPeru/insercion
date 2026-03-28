@@ -368,6 +368,85 @@ button:active{transform:scale(.97);}
   text-align:center;
   letter-spacing:1px;
 }
+
+/* TABS */
+.tabs{
+  display:flex;
+  gap:6px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:6px;
+}
+
+.tab{
+  flex:1;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  font-family:'DM Mono',monospace;
+  font-size:11px;
+  font-weight:500;
+  letter-spacing:1px;
+  cursor:pointer;
+  background:transparent;
+  color:var(--muted);
+  transition:all .2s;
+}
+
+.tab.active{
+  background:var(--green);
+  color:#000;
+}
+
+/* ELO */
+.elo-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:12px;
+}
+
+.elo-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+}
+
+.elo-row:last-child{margin-bottom:0;}
+
+.elo-team-name{
+  flex:2;
+  background:transparent;
+  border:none;
+  border-bottom:1px solid var(--border);
+  color:var(--text);
+  font-family:'DM Mono',monospace;
+  font-size:13px;
+  padding:4px 0;
+  outline:none;
+}
+
+.elo-team-name:focus{border-bottom-color:var(--green);}
+
+.elo-rating{
+  flex:1;
+  padding:9px 4px;
+  border-radius:6px;
+  border:1px solid var(--border);
+  background:#0d1421;
+  color:var(--yellow);
+  font-family:'DM Mono',monospace;
+  font-size:14px;
+  text-align:center;
+  outline:none;
+  -moz-appearance:textfield;
+}
+
+.elo-rating::-webkit-inner-spin-button{display:none;}
+.elo-rating:focus{border-color:var(--yellow);}
 </style>
 </head>
 <body>
@@ -376,6 +455,15 @@ button:active{transform:scale(.97);}
 
   <h1>⚽ POISSON EDGE</h1>
   <p class="subtitle">CALCULADORA DE VALOR EN APUESTAS</p>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" id="tab_dc">DIXON-COLES</button>
+    <button class="tab" id="tab_elo">ELO</button>
+  </div>
+
+  <!-- MODO DIXON-COLES -->
+  <div id="mode_dc" style="display:flex;flex-direction:column;gap:14px;">
 
   <!-- LIGA PROMEDIO -->
   <div class="config-card">
@@ -415,6 +503,43 @@ button:active{transform:scale(.97);}
     <button class="calc" id="btn_calc">CALCULAR</button>
     <button class="reset" id="btn_reset">LIMPIAR</button>
   </div>
+
+  </div><!-- fin mode_dc -->
+
+  <!-- MODO ELO -->
+  <div id="mode_elo" style="display:none;flex-direction:column;gap:14px;">
+
+  <div class="elo-card">
+    <div class="team-label" style="margin-bottom:12px;">⚽ RATINGS ELO <span style="font-size:9px;color:var(--muted)">clubelo.com</span></div>
+    <div class="elo-row">
+      <input class="elo-team-name" id="elo_name_home" placeholder="🏠 Equipo local...">
+      <input type="number" class="elo-rating" id="elo_home" placeholder="1500">
+    </div>
+    <div class="elo-row">
+      <input class="elo-team-name" id="elo_name_away" placeholder="✈️ Equipo visitante...">
+      <input type="number" class="elo-rating" id="elo_away" placeholder="1400">
+    </div>
+  </div>
+
+  <div class="buttons">
+    <button class="calc" id="btn_elo_calc">CALCULAR</button>
+    <button class="reset" id="btn_elo_reset">LIMPIAR</button>
+  </div>
+
+  <!-- BOOKIE ELO -->
+  <div class="edge-card" id="elo_bookie_section" style="display:none;">
+    <div class="section-title">COMPARAR CON BOOKIE (opcional)</div>
+    <p class="hint">Ingresa las cuotas reales para ver si hay edge</p>
+    <div class="edge-inputs">
+      <div class="edge-row"><label>CUOTA LOCAL</label><input type="number" id="elo_bookie_w" placeholder="1.50" step="0.01"></div>
+      <div class="edge-row"><label>CUOTA EMPATE</label><input type="number" id="elo_bookie_d" placeholder="3.50" step="0.01"></div>
+      <div class="edge-row"><label>CUOTA VISIT.</label><input type="number" id="elo_bookie_l" placeholder="5.00" step="0.01"></div>
+    </div>
+    <button class="calc" id="btn_elo_edge" style="margin-top:10px;width:100%;padding:10px;">VER EDGE</button>
+    <div class="edge-results" id="elo_edge_results"></div>
+  </div>
+
+  </div><!-- fin mode_elo -->
 
   <!-- RESULTADOS -->
   <div class="result" id="res">
@@ -654,7 +779,129 @@ document.addEventListener('DOMContentLoaded', function(){
   document.getElementById('btn_calc').addEventListener('click', calc);
   document.getElementById('btn_reset').addEventListener('click', resetForm);
   document.getElementById('btn_edge').addEventListener('click', calcEdge);
+  document.getElementById('btn_elo_calc').addEventListener('click', calcElo);
+  document.getElementById('btn_elo_reset').addEventListener('click', resetElo);
+  document.getElementById('btn_elo_edge').addEventListener('click', calcEloEdge);
+
+  // TAB SWITCHING
+  document.getElementById('tab_dc').addEventListener('click', function(){
+    document.getElementById('mode_dc').style.display='flex';
+    document.getElementById('mode_elo').style.display='none';
+    document.getElementById('res').style.display='none';
+    document.getElementById('tab_dc').classList.add('active');
+    document.getElementById('tab_elo').classList.remove('active');
+  });
+
+  document.getElementById('tab_elo').addEventListener('click', function(){
+    document.getElementById('mode_dc').style.display='none';
+    document.getElementById('mode_elo').style.display='flex';
+    document.getElementById('tab_elo').classList.add('active');
+    document.getElementById('tab_dc').classList.remove('active');
+  });
 });
+
+// --- ELO ---
+let eloProbW=0, eloProbD=0, eloProbL=0;
+
+function calcElo(){
+  const eloH=+document.getElementById('elo_home').value;
+  const eloA=+document.getElementById('elo_away').value;
+  const nameH=document.getElementById('elo_name_home').value||'LOCAL';
+  const nameA=document.getElementById('elo_name_away').value||'VISIT.';
+
+  if(!eloH||!eloA){alert("Ingresa los ratings Elo de ambos equipos");return;}
+
+  // probabilidad de victoria local según Elo
+  const probH = 1/(1+Math.pow(10,(eloA-eloH)/400));
+  // empate estimado (Dixon & Coles: draw rate ~25-28% ajustado por diferencia)
+  const diff = Math.abs(eloH-eloA);
+  const drawRate = Math.max(0.10, 0.28 - diff*0.0003);
+  // distribuir el resto entre victoria y derrota
+  const remaining = 1 - drawRate;
+  const win  = probH * remaining;
+  const lose = (1-probH) * remaining;
+  const draw = drawRate;
+
+  eloProbW=win; eloProbD=draw; eloProbL=lose;
+
+  // mostrar resultado reutilizando los mismos boxes de resultado
+  document.getElementById('label_win').textContent=nameH.substring(0,6).toUpperCase();
+  document.getElementById('label_lose').textContent=nameA.substring(0,6).toUpperCase();
+  document.getElementById('lam').textContent='ELO local '+eloH+'  ·  ELO visit '+eloA+'  ·  Δ '+(eloH-eloA);
+  document.getElementById('w').textContent=(win*100).toFixed(1)+'%';
+  document.getElementById('d').textContent=(draw*100).toFixed(1)+'%';
+  document.getElementById('l').textContent=(lose*100).toFixed(1)+'%';
+  document.getElementById('fair_w').textContent='cuota justa '+(1/win).toFixed(2);
+  document.getElementById('fair_d').textContent='cuota justa '+(1/draw).toFixed(2);
+  document.getElementById('fair_l').textContent='cuota justa '+(1/lose).toFixed(2);
+  document.getElementById('best_score').textContent=win>lose?'1 — 0':'0 — 1';
+  document.getElementById('best_score_prob').textContent='Resultado más probable según Elo';
+
+  // conclusión
+  const max=Math.max(win,draw,lose);
+  let dominantName, color;
+  if(max===win){dominantName=nameH.toUpperCase()+' GANA';color='var(--green)';}
+  else if(max===draw){dominantName='EMPATE';color='var(--yellow)';}
+  else{dominantName=nameA.toUpperCase()+' GANA';color='var(--red)';}
+  let confianza;
+  if(max>=0.55)confianza='ALTA';
+  else if(max>=0.40)confianza='MEDIA';
+  else confianza='BAJA';
+
+  document.getElementById('conclusion_text').innerHTML=
+    'El modelo ELO favorece <strong style="color:'+color+'">'+dominantName+'</strong> '+
+    'con <strong style="color:'+color+'">'+(max*100).toFixed(1)+'%</strong>.<br><br>'+
+    'Confianza: <strong style="color:'+color+'">'+confianza+'</strong><br><br>'+
+    '<span style="font-size:10px;color:var(--muted)">Diferencia de rating: '+(eloH-eloA)+' puntos</span>';
+
+  document.getElementById('res').style.display='flex';
+  document.getElementById('conclusion_card').style.display='block';
+  document.getElementById('elo_bookie_section').style.display='block';
+  document.getElementById('elo_edge_results').innerHTML='';
+}
+
+function calcEloEdge(){
+  if(!eloProbW){alert("Primero calcula el partido");return;}
+  const bW=+document.getElementById('elo_bookie_w').value;
+  const bD=+document.getElementById('elo_bookie_d').value;
+  const bL=+document.getElementById('elo_bookie_l').value;
+  if(!bW&&!bD&&!bL){alert("Ingresa al menos una cuota");return;}
+
+  const nameH=document.getElementById('elo_name_home').value||'LOCAL';
+  const nameA=document.getElementById('elo_name_away').value||'VISIT.';
+
+  const items=[
+    {label:nameH.substring(0,6).toUpperCase(),prob:eloProbW,bookie:bW},
+    {label:'EMPATE',prob:eloProbD,bookie:bD},
+    {label:nameA.substring(0,6).toUpperCase(),prob:eloProbL,bookie:bL},
+  ];
+
+  let html='';
+  items.forEach(function(item){
+    if(!item.bookie) return;
+    const bookieProb=1/item.bookie;
+    const edge=((item.prob-bookieProb)/bookieProb)*100;
+    const ev=((item.prob*item.bookie)-1)*100;
+    let cls,badge,badgeText;
+    if(edge>3){cls='edge-positive';badge='badge-pos';badgeText='✅ EDGE';}
+    else if(edge<-3){cls='edge-negative';badge='badge-neg';badgeText='❌ SIN VALOR';}
+    else{cls='edge-neutral';badge='badge-neu';badgeText='⚠️ NEUTRO';}
+    html+='<div class="edge-item '+cls+'"><span class="edge-label">'+item.label+'</span><span class="edge-value">EV '+(ev>0?'+':'')+ev.toFixed(1)+'%</span><span class="edge-badge '+badge+'">'+badgeText+'</span></div>';
+  });
+  document.getElementById('elo_edge_results').innerHTML=html;
+}
+
+function resetElo(){
+  document.getElementById('elo_name_home').value='';
+  document.getElementById('elo_name_away').value='';
+  document.getElementById('elo_home').value='';
+  document.getElementById('elo_away').value='';
+  document.getElementById('res').style.display='none';
+  document.getElementById('conclusion_card').style.display='none';
+  document.getElementById('elo_bookie_section').style.display='none';
+  document.getElementById('elo_edge_results').innerHTML='';
+  eloProbW=eloProbD=eloProbL=0;
+}
 </script>
 </body>
 </html>
