@@ -477,6 +477,16 @@ let nameHome='LOCAL', nameAway='VISIT.';
 function fact(n){return n<=1?1:n*fact(n-1);}
 function poisson(l,k){return(Math.pow(l,k)*Math.exp(-l))/fact(k);}
 
+// Corrección Dixon-Coles (paper 1997, rho=-0.13)
+function tau(i,j,lH,lA){
+  const rho=-0.13;
+  if(i===0&&j===0) return 1-lH*lA*rho;
+  if(i===1&&j===0) return 1+lA*rho;
+  if(i===0&&j===1) return 1+lH*rho;
+  if(i===1&&j===1) return 1-rho;
+  return 1;
+}
+
 function calc(){
   const gfH=+document.getElementById('gf_home').value;
   const gaH=+document.getElementById('ga_home').value;
@@ -504,10 +514,21 @@ function calc(){
 
   let win=0,draw=0,lose=0;
   let bestP=0,bestI=0,bestJ=0;
+  let total=0;
+  const grid=[];
+
+  for(let i=0;i<=7;i++){
+    grid[i]=[];
+    for(let j=0;j<=7;j++){
+      const p=poisson(homeL,i)*poisson(awayL,j)*tau(i,j,homeL,awayL);
+      grid[i][j]=p;
+      total+=p;
+    }
+  }
 
   for(let i=0;i<=7;i++){
     for(let j=0;j<=7;j++){
-      const p=poisson(homeL,i)*poisson(awayL,j);
+      const p=grid[i][j]/total;
       if(i>j) win+=p;
       else if(i===j) draw+=p;
       else lose+=p;
